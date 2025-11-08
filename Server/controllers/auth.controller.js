@@ -16,7 +16,7 @@ module.exports.register = async (req, res) => {
                 message: "User already exist",
             });
 
-        const salt = await bcrypt.genSalt();
+        const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         user = await userModel.create({
@@ -69,16 +69,19 @@ module.exports.login = async (req, res) => {
             maxAge: 15 * 24 * 60 * 60 * 1000, //15 days
         });
 
-        res.status(200).json({ message: "Login Successfully!", user });
+        res.status(200).json({
+            message: "Login Successfully!",
+            user: safeUser,
+        });
     } catch (error) {
-        res.status(500).json({ message: "Something went wrong!", error });
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };
 
 module.exports.logout = async (req, res) => {
     res.cookie("token", "", {
         httpOnly: true,
-        expiresIn: new Date(0),
+        expires: new Date(0),
     });
 
     res.status(200).json({ message: "Logged out Successfully!" });
@@ -86,6 +89,6 @@ module.exports.logout = async (req, res) => {
 
 module.exports.profile = (req, res) => {
     res.status(200).json({
-        user: req.body,
+        user: req.user,
     });
 };
